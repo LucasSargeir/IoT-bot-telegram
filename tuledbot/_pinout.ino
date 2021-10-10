@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#define D0    16
+#define D0    16          // PINO DO DHT
 #define D1    5           // PINO DO LED
 #define D2    4 
 #define D3    0 
