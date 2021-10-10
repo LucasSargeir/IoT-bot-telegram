@@ -16,7 +16,7 @@ void setup() {
     wifiInit(false);
     otaInit();
     ledInit(D0);
-    dhtInit();
+    dhtInit(D1);
 }
 
 void loop() {

@@ -1,28 +1,31 @@
 #include <Arduino.h>
 #include <DHT.h>
 
-DHT dht(D0, DHT11);
+DHT* dht;
 
-void dhtInit() {
-    Serial.print("--- Starting DHT ---");
-    dht.begin();
+void dhtInit(int PIN) {
+    dht = new DHT(PIN, DHT11);
+  
+    Serial.println("--- Starting DHT ---");
+    (*dht).begin();
 }
 
 
 void dhtLoop() {
-    float h = dht.readHumidity();
-    float t = dht.readTemperature();
-    // testa se retorno é valido, caso contrário algo está errado.
-    if (isnan(t) || isnan(h)){
-        Serial.println("Failed to read from DHT");
-    } else {
-        Serial.print("Umidade: ");
-        Serial.print(h);
-        Serial.print(" %t");
-        Serial.print("Temperatura: ");
-        Serial.print(t);
-        Serial.println(" *C");
+    float humidity    = (*dht).readHumidity();
+    float tempetature = (*dht).readTemperature();
+    
+    if (isnan(tempetature) || isnan(humidity)) {
+        Serial.println("--- Failed to read from DHT ---");
+    }
+    else {
+        Serial.print("--- Umidade: ");
+        Serial.print(humidity);
+        Serial.println(" %t       ---");
+        Serial.print("--- Temperatura: ");
+        Serial.print(tempetature);
+        Serial.println(" *C   ---");
     }
 
-    // delay(2000);
+    delay(2000);
 }

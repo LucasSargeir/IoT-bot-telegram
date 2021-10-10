@@ -10,19 +10,19 @@ void ledInit(int PIN){
 }
 
 void ledTurnOn(){
-  Serial.print("--- Led Aceso ---");
+  Serial.println("--- Led Aceso               ---");
   digitalWrite(PIN_LED, HIGH);
 }
 
 
 void ledTurnOff(){
-  Serial.print("--- Led Apagado ---");
+  Serial.println("--- Led Apagado             ---");
   digitalWrite(PIN_LED, LOW);
 }
 
 
 void ledBlink(int time){
-    Serial.print("--- Piscando Led ---");
+    Serial.println("--- Piscando Led            ---");
     
     ledTurnOn();
     delay(time);
