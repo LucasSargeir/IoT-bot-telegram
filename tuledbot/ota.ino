@@ -14,7 +14,7 @@ void otaInit() {
     ArduinoOTA.setHostname(OTA_HOSTNAME);
     ArduinoOTA.setPassword(OTA_PASSWORD);
     
-    ArduinoOTA.onStart([](){Serial.print("Padrao !!!!!!!!!!");});
+    ArduinoOTA.onStart(otaOnStart);
     ArduinoOTA.onEnd(otaOnEnd);
     ArduinoOTA.onProgress(otaOnProgress);
     ArduinoOTA.onError(otaOnError);
