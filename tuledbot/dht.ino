@@ -3,6 +3,8 @@
 
 DHT* dht;
 
+void dhtPrintMessage(float humidity, float temperature);
+
 void dhtInit(int PIN) {
     dht = new DHT(PIN, DHT11);
   
@@ -13,19 +15,23 @@ void dhtInit(int PIN) {
 
 void dhtLoop() {
     float humidity    = (*dht).readHumidity();
-    float tempetature = (*dht).readTemperature();
+    float temperature = (*dht).readTemperature();
     
-    if (isnan(tempetature) || isnan(humidity)) {
+    if (isnan(temperature) || isnan(humidity)) {
         Serial.println("--- Failed to read from DHT ---");
     }
     else {
-        Serial.print("--- Umidade: ");
-        Serial.print(humidity);
-        Serial.println(" %t       ---");
-        Serial.print("--- Temperatura: ");
-        Serial.print(tempetature);
-        Serial.println(" *C   ---");
+        dhtPrintMessage(humidity, temperature);
     }
 
     delay(2000);
+}
+
+void dhtPrintMessage(float humidity, float temperature) {
+    Serial.print("--- Umidade: ");
+    Serial.print(humidity);
+    Serial.println(" %t       ---");
+    Serial.print("--- Temperatura: ");
+    Serial.print(temperature);
+    Serial.println(" *C   ---");
 }
