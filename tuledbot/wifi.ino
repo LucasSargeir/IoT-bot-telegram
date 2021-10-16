@@ -4,7 +4,7 @@
 
 const char* WIFI_HOSTNAME = "Tuledbot";
 const char* WIFI_SSID = "TuledBot_Config";
-const char* WIFI_PASSWORD = "otaviotario";
+const char* WIFI_PASSWORD = "senha123";
 
 void wifiManagerConfig(bool resetSettings);
 

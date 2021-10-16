@@ -9,8 +9,6 @@ void wifiLoop();
 void otaLoop();
 void dhtLoop();
 
-void ledBlink(int time);
-
 void setup() {
     serialInit();
     wifiInit(false);

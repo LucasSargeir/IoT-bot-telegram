@@ -3,7 +3,7 @@
 
 const char* OTA_HOSTNAME = "TuledBot_OTA";
 const char* OTA_SSID = "TuledBot_OTA";
-const char* OTA_PASSWORD = "otaviotario";
+const char* OTA_PASSWORD = "senha";
 
 void otaOnStart();
 void otaOnProgress(unsigned int progress, unsigned int total);

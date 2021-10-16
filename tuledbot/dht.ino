@@ -21,7 +21,7 @@ void dhtLoop() {
         Serial.println("--- Failed to read from DHT ---");
     }
     else {
-        dhtPrintMessage(humidity, temperature);
+        dhtPrintTemperatureAndHumidityStatus(humidity, temperature);
     }
 
     delay(2000);
@@ -35,7 +35,7 @@ float dhtGetHumidity() {
     return (*dht).readHumidity();
 }
 
-void dhtPrintMessage(float humidity, float temperature) {
+void dhtPrintTemperatureAndHumidityStatus(float humidity, float temperature) {
     Serial.print("--- Umidade: ");
     Serial.print(humidity);
     Serial.println(" %t       ---");
