@@ -27,6 +27,14 @@ void dhtLoop() {
     delay(2000);
 }
 
+float dhtGetTemperature() {
+    return (*dht).readTemperature();
+}
+
+float dhtGetHumidity() {
+    return (*dht).readHumidity();
+}
+
 void dhtPrintMessage(float humidity, float temperature) {
     Serial.print("--- Umidade: ");
     Serial.print(humidity);

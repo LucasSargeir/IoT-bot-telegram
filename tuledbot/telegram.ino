@@ -1,85 +1,51 @@
 #include<Arduino.h>
 #include <UniversalTelegramBot.h>
 
-#define TELEGRAM_SSID "VIRUS"
-#define TELEGRAM_PASSWORD "DAFCA90150"
 #define BOT_TOKEN "2040806579:AAFrN7RYxL6h260BjmduyIgzJEtwhUg00RY"
 
-// const unsigned long BOT_MTBS = 1000; // mean time between scan messages
+unsigned long bot_last_scan_time;
+const unsigned long BOT_SCAN_INTERVAL = 100;
 
 X509List cert(TELEGRAM_CERTIFICATE_ROOT);
-WiFiClientSecure secured_client;
-UniversalTelegramBot bot(BOT_TOKEN, secured_client);
-// unsigned long bot_lasttime; // last time messages' scan has been done
+WiFiClientSecure wifi_secure_client;
+UniversalTelegramBot bot(BOT_TOKEN, wifi_secure_client);
 
-const int ledPin = LED_BUILTIN;
-int ledStatus = 0;
+const int ledPin = D0;
 
-void handleNewMessages(int numNewMessages)
-{
-  Serial.print("handleNewMessages ");
-  Serial.println(numNewMessages);
-
-  for (int i = 0; i < numNewMessages; i++)
-  {
-    String chat_id = bot.messages[i].chat_id;
-    String text = bot.messages[i].text;
-
-    String from_name = bot.messages[i].from_name;
-    if (from_name == "")
-      from_name = "Guest";
-
-    if (text == "/ledon")
-    {
-      digitalWrite(ledPin, LOW); // turn the LED on (HIGH is the voltage level)
-      ledStatus = 1;
-      bot.sendMessage(chat_id, "Led is ON", "");
-    }
-
-    if (text == "/ledoff")
-    {
-      ledStatus = 0;
-      digitalWrite(ledPin, HIGH); // turn the LED off (LOW is the voltage level)
-      bot.sendMessage(chat_id, "Led is OFF", "");
-    }
-
-    if (text == "/status")
-    {
-      if (ledStatus)
-      {
-        bot.sendMessage(chat_id, "Led is ON", "");
-      }
-      else
-      {
-        bot.sendMessage(chat_id, "Led is OFF", "");
-      }
-    }
-
-    if (text == "/start")
-    {
-      String welcome = "Welcome to Universal Arduino Telegram Bot library, " + from_name + ".\n";
-      welcome += "This is Flash Led Bot example.\n\n";
-      welcome += "/ledon : to switch the Led ON\n";
-      welcome += "/ledoff : to switch the Led OFF\n";
-      welcome += "/status : Returns current status of LED\n";
-      bot.sendMessage(chat_id, welcome, "Markdown");
-    }
-  }
-}
+void setupUTCTime();
+void setupTelegramCommands();
 
 void telegramInit() {
-  Serial.println();
+  setupUTCTime();
+  setupTelegramCommands();
+}
 
-  pinMode(ledPin, OUTPUT); // initialize digital ledPin as an output.
-  delay(10);
-  digitalWrite(ledPin, HIGH); // initialize pin as off (active LOW)
+void telegramLoop() {
 
-  // attempt to connect to Wifi network:
-  configTime(0, 0, "pool.ntp.org");      // get UTC time via NTP
-  secured_client.setTrustAnchors(&cert); // Add root certificate for api.telegram.org
+    if(millis() - bot_last_scan_time < BOT_SCAN_INTERVAL) return;
+    
+    int totalNewMessages = bot.getUpdates(bot.last_message_received + 1);
+    
+    while (totalNewMessages){
+        Serial.print("Nova mensagem: ");
+        handleNewMessages(totalNewMessages);
+        totalNewMessages = bot.getUpdates(bot.last_message_received + 1);
+    }
+    
+    bot_last_scan_time = millis();
+}
 
-  // Check NTP/Time, usually it is instantaneous and you can delete the code below.
-  Serial.print("Retrieving time: ");
+void setupTelegramCommands() {
+    String commands = "[{\"command\":\"led_on\", \"description\":\"Liga o LED\"},{\"command\":\"led_off\",\"description\":\"Desliga o LED\"},{\"command\":\"led_status\",\"description\":\"Status do LED\"},{\"command\":\"temperature\",\"description\":\"Retorna a temperatura do ambiente\"},{\"command\":\"humidity\",\"description\":\"Retorna a umidade do ambiente\"},{\"command\":\"th\",\"description\":\"Retorna a temperatura e a umidade do ambiente\"}]";
+
+    bot.setMyCommands(commands);
+}
+
+void setupUTCTime() {
+  configTime(0, 0, "pool.ntp.org");
+  wifi_secure_client.setTrustAnchors(&cert); // Root certificate for api.telegram.org
+
+  // Sync NTP/Time
   time_t now = time(nullptr);
   while (now < 24 * 3600)
   {
@@ -88,22 +54,79 @@ void telegramInit() {
     now = time(nullptr);
   }
   Serial.println(now);
-    
 }
 
-void telegramLoop() {
+/* MESSAGE CALLBACKS */
 
- if (millis() - bot_lasttime > 1000)
-  {
-    int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+void led_on_and_notify(String chat_id) {
+    ledTurnOn();
+    bot.sendMessage(chat_id, "Led **LIGADO**", "MarkdownV2");
+}
 
-    while (numNewMessages)
-    {
-      Serial.println("got response");
-      handleNewMessages(numNewMessages);
-      numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+void led_off_and_notify(String chat_id) {
+    ledTurnOff();
+    bot.sendMessage(chat_id, "Led **DESLIGADO**", "Markdown");
+}
+
+void led_status_and_notify(String chat_id) {
+    int ledStatus = getLedStatus();
+    if(ledStatus){
+        bot.sendMessage(chat_id, "Led **LIGADO**", "Markdown");
+    }else{
+        bot.sendMessage(chat_id, "Led **DESLIGADO**", "Markdown");    
+    }
+}
+
+void temperature(String chat_id) {
+    float temperature = dhtGetTemperature();
+    String message = "Temperatura atual: " + (String) temperature;
+    
+    bot.sendMessage(chat_id, message, "");
+}
+
+void humidity(String chat_id) {
+    float humidity = dhtGetHumidity();
+    String message = "Umidade atual: " + (String) humidity;
+    
+    bot.sendMessage(chat_id, message, "");
+}
+
+void th(String chat_id){
+    float temperature = dhtGetTemperature();
+    float humidity = dhtGetHumidity();
+
+    String message = "Temperatura: " + (String) temperature + "\n" + "Umidade: " + (String) humidity;
+    bot.sendMessage(chat_id, message, "");
+}
+
+void help(String chat_id){
+    String welcome = "Welcome to Universal Arduino Telegram Bot library,.\n";
+    welcome += "This is Flash Led Bot example.\n\n";
+    welcome += "/ledon : to switch the Led ON\n";
+    welcome += "/ledoff : to switch the Led OFF\n";
+    welcome += "/led_status : Returns current status of LED\n";
+    bot.sendMessage(chat_id, welcome, "Markdown");
+}
+
+void handleNewMessages(int numNewMessages){
+    
+  for (int i = 0; i < numNewMessages; i++){
+    String chat_id = bot.messages[i].chat_id;
+    String text = bot.messages[i].text;
+    String from_name = bot.messages[i].from_name;
+
+    Serial.println(text);
+    
+    if (from_name == ""){
+      from_name = "Otário";
     }
 
-    bot_lasttime = millis();
+    if (text == "/led_on") led_on_and_notify(chat_id);
+    if (text == "/led_off") led_off_and_notify(chat_id);
+    if (text == "/led_status") led_status_and_notify(chat_id);
+    if (text == "/temperature") temperature(chat_id);
+    if (text == "/humidity") humidity(chat_id);
+    if (text == "/th") th(chat_id);
+    if (text == "/help") help(chat_id);
   }
 }
