@@ -29,8 +29,17 @@ int getLedStatus() {
 
 void ledBlink(int time){
     Serial.println("--- Piscando Led            ---");
+
+    if(led_status){
+        ledTurnOff();
+        delay(time);
+        ledTurnOn();
+        
+    }else{
+        ledTurnOn();
+        delay(time);
+        ledTurnOff();
+    }
     
-    ledTurnOn();
-    delay(time);
-    ledTurnOff();
+    
 }

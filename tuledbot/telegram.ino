@@ -91,7 +91,7 @@ void led_off_and_notify(String chat_id) {
 }
 
 void led_blink_and_notify(String chat_id){
-    ledBlink(10);
+    ledBlink(100);
     bot.sendMessage(chat_id, "Led *PISCOU*", "Markdown");
 }
 
